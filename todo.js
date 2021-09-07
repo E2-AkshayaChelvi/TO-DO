@@ -1,3 +1,26 @@
+function pushLocalStateObject(){ 
+  var globalarr=[];
+  Array.from(document.querySelectorAll('#myUL > li')).map((ele)=>{
+    if(!ele.style.display!='none'){
+      if(ele.classList.contains('checked')){
+        globalarr.push({val:ele.childNodes[0].data,checked:true});
+      }else{
+        globalarr.push({val:ele.childNodes[0].data,checked:false});
+      }
+    }
+  })
+  setData(JSON.stringify({data:globalarr}));
+}
+function getLocalStateObject(arr){
+  if(arr=="undefined"||arr=="") return "";
+  var htmlstring="";
+  JSON.parse(arr)["data"].map(data=>{
+    htmlstring+=data.checked?`<li class="checked">${data.val}<span class="edit"><i class="far fa-edit" aria-hidden="true"></i></span><span class="close">\u00D7</span></li>`:
+    `<li>${data.val}<span class="edit"><i class="far fa-edit" aria-hidden="true"></i></span><span class="close">\u00D7</span></li>`;
+  })
+  return htmlstring;
+}
+
 function setData(a){
   window.localStorage.setItem("todos", a);
 }
@@ -14,32 +37,30 @@ var list = document.querySelector('ul');
 list.addEventListener('click', function(ev) {
   if (ev.target.tagName === 'LI') {
     ev.target.classList.toggle('checked');
-    setData(document.getElementById("myUL").innerHTML);
+    pushLocalStateObject();
   }
 }, false);
 
-// Click on a close button to hide the current list item and edit to ediit list item
 var close = document.getElementsByClassName("close");
 var i;
 var delItem=null;
 var editItem = null;
 var edit = document.getElementsByClassName("edit");
-
-document.getElementById("myUL").innerHTML=getData();
+document.getElementById("myUL").innerHTML=getLocalStateObject(getData());
 
 handleEditandDelete();
 
 function handleEditandDelete(){
 for (i = 0; i < close.length; i++) {
-  close[i].addEventListener('click', deletefunction); 
+  close[i].addEventListener('click', showDeleteModal); 
   }
 
 for (i = 0; i < edit.length; i++) {
-edit[i].addEventListener('click', editbutton);
+edit[i].addEventListener('click', showEditModal);
 }
 }
 
-function editbutton(e)
+function showEditModal(e)
 {
   document.getElementsByClassName('edit-Popup')[0].style.display="block";
   document.getElementById('editinput-alert').style.display="none";
@@ -47,7 +68,6 @@ function editbutton(e)
     document.getElementById("editinput").value = e.target.parentNode.parentNode.childNodes[0].data;
   }else{
     document.getElementById("editinput").value = e.target.parentNode.childNodes[0].data;
-
   }
   console.log(e.target.parentNode.childNodes[0]);
   editItem = e;
@@ -55,30 +75,27 @@ function editbutton(e)
 
 function edittaskfunc() {
   document.getElementById('editinput-alert').style.display="block";
-
   if (document.getElementById("editinput").value === '') {
     document.getElementById('editinput-alert').innerHTML="You must write something!";
-  }
-  else{
-if(editItem.target.tagName=="I"){
+  } else{
+  if(editItem.target.tagName=="I"){
   editItem.target.parentNode.parentNode.childNodes[0].data=document.getElementById("editinput").value;
-}else{
+  }else{
   editItem.target.parentNode.childNodes[0].data=document.getElementById("editinput").value;      
-}    
-closeEditPrompt();
-document.getElementsByClassName('popup')[0].style.display="block";
-  document.getElementById('demo').innerHTML="Task edited successfully!";
-setTimeout(timeout, 2000);
-setData(document.getElementById("myUL").innerHTML);
-
-  }
+  }    
+  closeEditPrompt();
+  document.getElementsByClassName('popup')[0].style.display="block";
+  document.getElementById('successMessage').innerHTML="Task edited successfully!";
+  setTimeout(timeout, 2000);
+  pushLocalStateObject();
+}
 }
 
 function closeEditPrompt() {
   document.getElementsByClassName('edit-Popup')[0].style.display="none"; 
 }
 
-function deletefunction(e) {
+function showDeleteModal(e) {
   delItem= e.target.parentElement;
   document.getElementsByClassName('modal-confirm')[0].style.display="flex";   
   
@@ -86,9 +103,9 @@ function deletefunction(e) {
 function removeElement(){
   delItem.style.display = "none";
   document.getElementsByClassName('popup')[0].style.display="block";
-  document.getElementById('demo').innerHTML="Task deleted successfully!";
+  document.getElementById('successMessage').innerHTML="Task deleted successfully!";
   setTimeout(timeout, 2000);
-  setData(document.getElementById("myUL").innerHTML);
+  pushLocalStateObject();
   closedeletePrompt();
 }
 
@@ -96,13 +113,10 @@ function closedeletePrompt() {
   document.getElementsByClassName('modal-confirm')[0].style.display="none";
 }
 
-
 //to remove the success message after 2 seconds
 function timeout(){
-  document.getElementById('demo').innerHTML='';
-    document.getElementById("alertMessage").classList.remove("showdemo");
+  document.getElementById('successMessage').innerHTML='';
     document.getElementsByClassName('popup')[0].style.display="none";  
-
 }
 // Create a new list item when clicking on the "submit" button
 function newElement() {
@@ -116,7 +130,6 @@ function newElement() {
   else{
   if(submit.value == "Submit"){
      document.getElementById("myUL").appendChild(li);
-     
   }
   
   document.getElementById("myInput").value = "";
@@ -134,10 +147,8 @@ function newElement() {
   span.appendChild(txt);
   li.appendChild(span);
 
-  setData(document.getElementById("myUL").innerHTML);
+  pushLocalStateObject();
 
   handleEditandDelete();
-  
   }
 }
-
